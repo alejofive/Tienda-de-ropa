@@ -1,0 +1,15 @@
+.variant-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}
+.variant-heading .muted{margin:7px 0 13px}
+.variant-total{background:#eaf2e9;color:#315b44;border-radius:99px;padding:8px 12px;font-size:12px;font-weight:750;white-space:nowrap}
+.variant-tip{background:#f7f4e9;border-radius:9px;padding:11px 13px;color:#7a6d48;font-size:12px;line-height:1.5;margin:0 0 13px}
+.variant-row{display:grid;grid-template-columns:25px minmax(0,1.25fr) minmax(0,.9fr) minmax(0,.75fr) 31px;align-items:end;gap:9px;padding:13px 0;border-top:1px solid #edf0e9}
+.variant-row .field{margin:0;min-width:0}
+.variant-row .field input{width:100%}
+.variant-index{align-self:center;color:#9aa599;font-size:12px;font-weight:750}
+.variant-remove{display:grid;place-items:center;width:31px;height:43px;border:0;background:transparent;color:#aa745f}
+.variant-remove:hover:not(:disabled){color:#8c3e2c}
+.variant-remove:disabled{color:#cbd0c8;cursor:not-allowed}
+.add-variant{margin-top:16px}
+.product-submit-actions{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:27px}
+@media(max-width:520px){.product-submit-actions{grid-template-columns:1fr}}
+@media(max-width:620px){.variant-heading{display:block}.variant-total{display:inline-block;margin:0 0 15px}.variant-row{grid-template-columns:1fr 1fr 30px;gap:7px 9px}.variant-index{display:none}.variant-row .field:nth-of-type(1){grid-column:1}.variant-row .field:nth-of-type(2){grid-column:2}.variant-row .field:nth-of-type(3){grid-column:1/3}.variant-remove{grid-column:3;grid-row:1/3;align-self:center}.variant-row .field input{margin-top:6px}}
