@@ -14,7 +14,7 @@ export function text(value: FormDataEntryValue | null, field: string, max = 120)
   if (!result || result.length > max) throw new Error(`${field}: ingresa entre 1 y ${max} caracteres`);
   return result;
 }
-export function message(error: unknown) { return error instanceof Error ? error.message : "Ocurrió un error. Inténtalo de nuevo."; }
+export function message(error: unknown) { return typeof error === "string" ? error : error instanceof Error ? error.message : "Ocurrió un error. Inténtalo de nuevo."; }
 export function imageUrl(path: string | null) {
   if (!path || !process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/productos/${path.split("/").map(encodeURIComponent).join("/")}`;
