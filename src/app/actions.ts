@@ -21,7 +21,13 @@ function uuid(value: FormDataEntryValue | null) {
 export async function signIn(form: FormData) {
   const db = await supabaseServer();
   const { error } = await db.auth.signInWithPassword({ email: String(form.get("email") ?? ""), password: String(form.get("password") ?? "") });
-  if (error) fail("/login", "Correo o contraseña incorrectos");
+  if (error) {
+    console.error("Supabase login failed", { type: error.name, status: error.status ?? null, code: error.code ?? null });
+    if (error.code === "invalid_credentials") fail("/login", "Correo o contraseña incorrectos");
+    if (error.code === "email_not_confirmed") fail("/login", "Confirma tu correo antes de ingresar");
+    if (error.name === "AuthRetryableFetchError" || error.status === 0) fail("/login", "No se pudo conectar con Supabase. Inténtalo de nuevo");
+    fail("/login", "No se pudo iniciar sesión. Inténtalo de nuevo");
+  }
   redirect("/");
 }
 export async function signOut() {

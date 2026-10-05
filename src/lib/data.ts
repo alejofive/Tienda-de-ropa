@@ -17,8 +17,14 @@ export async function loadData() {
     db.from("sale_items").select("id,sale_id,product_name,variant_color,variant_size,quantity,unit_price,unit_cost"),
     db.from("payments").select("id,sale_id,amount,paid_at,note,created_at").order("created_at", { ascending: false }),
   ]);
-  const error = [products, variants, customers, sales, items, payments].find((result) => result.error)?.error;
-  if (error) throw new Error(`No se pudieron cargar los datos: ${error.message}. Comprueba la migración de Supabase.`);
+  const results = { products, product_variants: variants, customers, sales, sale_items: items, payments };
+  for (const [table, result] of Object.entries(results)) {
+    if (!result.error) continue;
+    const causeCode = result.error.details?.match(/Caused by:[^\n]*\(([A-Z][A-Z0-9_]{2,40})\)/)?.[1] ?? null;
+    console.error("Supabase data load failed", { table, status: result.status, code: result.error.code || null, causeCode });
+  }
+  const error = Object.values(results).find((result) => result.error)?.error;
+  if (error) throw new Error(error.message.includes("fetch failed") ? "No se pudo conectar con Supabase. Inténtalo de nuevo." : `No se pudieron cargar los datos: ${error.message}. Comprueba la migración de Supabase.`);
   return { products: products.data as Product[], variants: variants.data as Variant[], customers: customers.data as Customer[], sales: sales.data as Sale[], items: items.data as Item[], payments: payments.data as Payment[] };
 }
 
