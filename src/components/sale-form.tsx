@@ -10,9 +10,10 @@ import { variantLabel } from "@/lib/variants";
 import { ProductPhoto } from "./ui";
 import { ProductSearch } from "./product-search";
 import { MoneyInput } from "./money-input";
+import { ActionForm, SubmitButton } from "./action-form";
 import "./sale-form.css";
 
-export function SaleForm({ products, variants, customers }: { products: Product[]; variants: Variant[]; customers: Customer[] }) {
+export function SaleForm({ products, variants, customers, requestId }: { products: Product[]; variants: Variant[]; customers: Customer[]; requestId: string }) {
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<"full" | "credit">("full");
@@ -28,7 +29,7 @@ export function SaleForm({ products, variants, customers }: { products: Product[
   const validPayment = mode === "full" || (total > 0 && payment !== "" && Number(payment) >= 0 && Number(payment) < total);
   function update(v: Variant, quantity: number) { setQuantities(current => ({ ...current, [v.id]: Math.max(0, Math.min(v.stock, quantity)) })); }
 
-  return <form action={createSale} className="sale-layout"><div className="sale-main">
+  return <ActionForm action={createSale} className="sale-layout"><div className="sale-main">
     <section className="form-card"><div className="section-heading"><span className="step">1</span><div><h2>Elige color y talla</h2><p className="muted">Selecciona la combinación exacta que se llevará hoy.</p></div></div>
       <ProductSearch value={query} onChange={setQuery} /><p className="search-count" aria-live="polite">{filteredProducts.length} {filteredProducts.length === 1 ? "producto disponible" : "productos disponibles"}{items.length > 0 && ` · ${items.length} ${items.length === 1 ? "elegido" : "elegidos"} en el resumen`}</p>
       {filteredProducts.length ? <div className="sale-products">{filteredProducts.map(p => <div key={p.id} className="sale-product-group"><div className="sale-product"><ProductPhoto product={p} /><div className="sale-product-info"><strong>{p.name}</strong><span>{money(p.price)} · {p.stock} unidades en total</span></div></div><div className="sale-variant-list">{variants.filter(v => v.product_id === p.id).map(v => <div className={`sale-variant ${v.stock === 0 ? "sold-out" : ""}`} key={v.id}><div className="sale-variant-info"><strong>{variantLabel(v.color, v.size)}</strong><small>{v.stock === 0 ? "Agotada" : `${v.stock} ${v.stock === 1 ? "disponible" : "disponibles"}`}</small></div><div className="quantity"><button type="button" aria-label={`Quitar ${p.name}, ${variantLabel(v.color, v.size)}`} disabled={!quantities[v.id]} onClick={() => update(v, (quantities[v.id] || 0) - 1)}><Minus size={16} /></button><span>{quantities[v.id] || 0}</span><button type="button" aria-label={`Agregar ${p.name}, ${variantLabel(v.color, v.size)}`} disabled={(quantities[v.id] || 0) >= v.stock} onClick={() => update(v, (quantities[v.id] || 0) + 1)}><Plus size={16} /></button></div></div>)}</div></div>)}</div> : <div className="search-empty"><strong>No encontramos productos con ese nombre</strong>Prueba con otra palabra o limpia la búsqueda. Los productos elegidos siguen en el resumen.</div>}
@@ -45,6 +46,7 @@ export function SaleForm({ products, variants, customers }: { products: Product[
       </div>}
     </section>
   </div><aside className="sale-summary form-card"><div className="section-heading"><span className="step">3</span><div><h2>Revisa la venta</h2><p className="muted">Las unidades se descuentan al confirmar.</p></div></div>
+    <input type="hidden" name="request_id" value={requestId} />
     <input type="hidden" name="items" value={JSON.stringify(items)} />
     <input type="hidden" name="payment_mode" value={mode} />
     {mode === "full" && <input type="hidden" name="initial_payment" value={total} />}
@@ -52,6 +54,6 @@ export function SaleForm({ products, variants, customers }: { products: Product[
     <div className="summary-line total"><span>Total de la venta</span><strong>{money(total)}</strong></div>
     <div className="summary-line"><span>Paga hoy</span><strong>{money(paidToday)}</strong></div>
     <div className="summary-line balance"><span>Queda por pagar</span><strong>{money(Math.max(0, total - paidToday))}</strong></div>
-    <button className="button primary form-submit" disabled={!items.length || !validCustomer || !validPayment} type="submit"><ShoppingBag size={18} /> Confirmar venta y entregar</button>
-  </aside></form>;
+    <SubmitButton className="button primary form-submit" pendingLabel="Registrando venta…" disabled={!items.length || !validCustomer || !validPayment} type="submit"><ShoppingBag size={18} /> Confirmar venta y entregar</SubmitButton>
+  </aside></ActionForm>;
 }

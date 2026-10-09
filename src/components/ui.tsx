@@ -3,6 +3,7 @@ import Image from "next/image";
 import { ArrowLeft, ArrowRight, ImageIcon } from "lucide-react";
 import type { Product } from "@/lib/data";
 import { money, imageUrl } from "@/lib/format";
+import "./sale-status.css";
 
 export function Alert({ error, ok }: { error?: string; ok?: string }) {
   return <>{error && <div className="alert error" role="alert">{error}</div>}{ok && <div className="alert success" role="status">{ok}</div>}</>;
@@ -19,4 +20,4 @@ export function ProductPhoto({ product, className = "" }: { product: Pick<Produc
   return <div className={`product-photo ${className}`}>{url ? <Image src={url} alt={product.name} width={400} height={400} unoptimized /> : <ImageIcon size={29} strokeWidth={1.3} aria-label="Sin fotografía" />}</div>;
 }
 export function MoneyValue({ value, strong = false }: { value: number; strong?: boolean }) { return <span className={strong ? "money-strong" : ""}>{money(value)}</span>; }
-export function SaleStatus({ balance, total }: { balance: number; total: number }) { const label = balance <= 0 ? "Pagada" : balance === total ? "Pendiente" : "Pago parcial"; return <span className={`badge ${balance <= 0 ? "paid" : balance === total ? "pending" : "partial"}`}>{label}</span>; }
+export function SaleStatus({ balance, total, cancelled = false }: { balance: number; total: number; cancelled?: boolean }) { const label = cancelled ? "Anulada" : balance <= 0 ? "Pagada" : balance === total ? "Pendiente" : "Pago parcial"; return <span className={`badge ${cancelled ? "cancelled" : balance <= 0 ? "paid" : balance === total ? "pending" : "partial"}`}>{label}</span>; }

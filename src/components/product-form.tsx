@@ -7,6 +7,7 @@ import { saveProduct } from "@/app/actions";
 import { money, imageUrl, numericInput } from "@/lib/format";
 import type { Product, Variant } from "@/lib/data";
 import { MoneyInput } from "./money-input";
+import { ActionForm, SubmitButton } from "./action-form";
 import "./product-variants.css";
 
 type VariantRow = { key: string; id: string | null; color: string; size: string; stock: string };
@@ -24,7 +25,7 @@ export function ProductForm({ product, variants = [] }: { product?: Product; var
   function updateRow(key: string, field: "color" | "size" | "stock", value: string) {
     setRows(current => current.map(row => row.key === key ? { ...row, [field]: field === "stock" ? numericInput(value) : value } : row));
   }
-  return <form action={saveProduct} className="form-card">
+  return <ActionForm action={saveProduct} className="form-card">
     {product && <input type="hidden" name="id" value={product.id} />}
     <input type="hidden" name="variants" value={JSON.stringify(rows.map(({ id, color, size, stock }) => ({ id, color, size, stock })))} />
     <div className="form-section"><h2>La prenda</h2><p className="muted">Una buena foto ayuda a reconocerla rápidamente.</p>
@@ -45,6 +46,6 @@ export function ProductForm({ product, variants = [] }: { product?: Product; var
       {hasDuplicates && <p className="field-warning" role="alert">No repitas la misma combinación de color y talla.</p>}
       <button className="button outline add-variant" type="button" disabled={rows.length >= 100} onClick={() => setRows(current => [...current, { key: crypto.randomUUID(), id: null, color: "", size: "", stock: "" }])}><Plus size={17} /> Agregar otra combinación</button>
     </div>
-    {product ? <button className="button primary form-submit" disabled={hasDuplicates || stockTotal > 2147483647} type="submit">Guardar cambios</button> : <div className="product-submit-actions"><button className="button primary" disabled={hasDuplicates || stockTotal > 2147483647} type="submit" name="after_save" value="another">Guardar y agregar otro</button><button className="button outline" disabled={hasDuplicates || stockTotal > 2147483647} type="submit" name="after_save" value="view">Guardar y ver producto</button></div>}
-  </form>;
+    {product ? <SubmitButton className="button primary form-submit" pendingLabel="Guardando cambios…" disabled={hasDuplicates || stockTotal > 2147483647} type="submit">Guardar cambios</SubmitButton> : <div className="product-submit-actions"><SubmitButton className="button primary" pendingLabel="Guardando producto…" disabled={hasDuplicates || stockTotal > 2147483647} type="submit" name="after_save" value="another">Guardar y agregar otro</SubmitButton><SubmitButton className="button outline" pendingLabel="Guardando producto…" disabled={hasDuplicates || stockTotal > 2147483647} type="submit" name="after_save" value="view">Guardar y ver producto</SubmitButton></div>}
+  </ActionForm>;
 }

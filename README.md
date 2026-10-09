@@ -10,7 +10,7 @@ Panel privado y responsive para gestionar una tienda de ropa en Colombia. Regist
 ## Configuración
 
 1. Instala dependencias: `npm install`.
-2. En Supabase, abre **SQL Editor** y ejecuta las migraciones **en orden**: `supabase/migrations/20261004000000_initial.sql`, `supabase/migrations/20261005000000_walk_in_sales.sql` y `supabase/migrations/20261006000000_product_variants.sql`. Si ya ejecutaste las dos primeras, ejecuta **solo la tercera**. Conserva productos y ventas existentes: su inventario pasa a una variante «Único · Única». Esto crea las tablas, reglas de acceso, funciones transaccionales y el bucket público `productos` (solo el usuario autenticado puede subir archivos dentro de su carpeta).
+2. En Supabase, abre **SQL Editor** y ejecuta las migraciones **en orden**: `supabase/migrations/20261004000000_initial.sql`, `supabase/migrations/20261005000000_walk_in_sales.sql`, `supabase/migrations/20261006000000_product_variants.sql` y `supabase/migrations/20261007000000_sale_returns.sql`. Si ya ejecutaste alguna, ejecuta **solo las que faltan**, en orden. Conservan productos y ventas existentes; la última agrega protección contra ventas duplicadas y devoluciones. Las migraciones crean tablas, reglas de acceso, funciones transaccionales y el bucket público `productos` (solo el usuario autenticado puede subir archivos dentro de su carpeta).
 3. En **Authentication → Users**, crea una cuenta con correo y contraseña para el administrador. Usa el correo confirmado o confirma la cuenta desde Supabase. La aplicación no ofrece registro público.
 4. Copia `.env.example` a `.env.local` y reemplaza las dos variables con **Project URL** y la **publishable key** (o `anon` key) de **Project Settings → API**. Nunca pongas una `service_role` o secret key en `NEXT_PUBLIC_*`.
 5. Inicia la web: `npm run dev`. Abre `http://localhost:3000` e inicia sesión.
@@ -26,7 +26,7 @@ Panel privado y responsive para gestionar una tienda de ropa en Colombia. Regist
 - `src/components`: navegación, formularios y componentes visuales.
 - `src/lib/supabase`: clientes de Supabase para servidor y navegador.
 - `src/lib/data.ts`: lectura de datos y cálculos de saldos.
-- `supabase/migrations`: tablas, políticas RLS y funciones `create_sale` / `add_payment`.
+- `supabase/migrations`: tablas, políticas RLS y funciones de ventas, pagos y devoluciones.
 
 ## Reglas de negocio
 
@@ -35,6 +35,10 @@ Panel privado y responsive para gestionar una tienda de ropa en Colombia. Regist
 - Una venta guarda el precio y el costo por producto del momento; modificar el catálogo no cambia ventas anteriores.
 - `save_product_with_variants` crea o edita las combinaciones de color/talla junto con los datos del producto y calcula su stock total en una sola transacción.
 - `create_sale_v3` bloquea producto y variantes, guarda color/talla y precios del momento, descuenta solo la combinación vendida y registra el pago inicial en una sola transacción. También puede crear al cliente nuevo en esa misma transacción.
+- Cada intento de venta lleva un identificador único: reintentar la misma solicitud devuelve la venta existente sin volver a cobrar o descontar unidades.
+- Desde el detalle de una venta puedes anularla entera o devolver prendas y cantidades concretas. Se reponen sus existencias y se registra el dinero reembolsado. Una venta anulada permanece visible en el historial para poder revisar lo ocurrido.
+- Un reembolso parcial puede ser cero si la devolución solo reduce deuda. Si ya hay más dinero cobrado que el nuevo total, se exige reembolsar al menos la diferencia. Una anulación completa devuelve todo lo cobrado.
+- Los reportes registran la devolución y el reembolso en el mes en que se realizan, sin modificar retrospectivamente los movimientos de caja de meses anteriores.
 - Una venta de mostrador pagada totalmente no necesita cliente. Si queda cualquier saldo pendiente, el cliente es obligatorio.
 - `add_payment` bloquea la venta y rechaza abonos superiores al saldo.
 - La ganancia de las ventas del mes es el total vendido menos el costo de esos productos; el dinero cobrado en el mes puede pertenecer a ventas anteriores.

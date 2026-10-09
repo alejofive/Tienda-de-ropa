@@ -116,6 +116,7 @@ export async function createSale(form: FormData) {
   const { db } = await authenticated();
   let id: string;
   try {
+    const requestId = uuid(form.get("request_id"));
     const mode = String(form.get("payment_mode") ?? "");
     if (mode !== "full" && mode !== "credit") throw new Error("Selecciona cómo pagará el cliente");
     const customer = mode === "credit" && form.get("customer_id") ? uuid(form.get("customer_id")) : null;
@@ -134,12 +135,36 @@ export async function createSale(form: FormData) {
       return { variant_id, quantity };
     });
     const amount = integer(form.get("initial_payment"), "Pago inicial");
-    const { data, error } = await db.rpc("create_sale_v3", { p_customer_id: customer, p_customer_name: customerName, p_customer_phone: customerPhone, p_items: items, p_initial_payment: amount });
+    const { data, error } = await db.rpc("create_sale_v3", { p_customer_id: customer, p_customer_name: customerName, p_customer_phone: customerPhone, p_items: items, p_initial_payment: amount, p_request_id: requestId });
     if (error) throw new Error(error.message);
     id = data as string;
   } catch (error) { fail("/ventas/nueva", error); }
   revalidatePath("/", "layout");
   redirect(`/ventas/${id}?ok=Venta%20registrada`);
+}
+
+export async function processSaleReturn(form: FormData) {
+  const { db } = await authenticated();
+  const saleId = uuid(form.get("sale_id"));
+  const path = `/ventas/${saleId}/devolver${form.get("mode") === "cancel" ? "?mode=cancel" : ""}`;
+  try {
+    const requestId = uuid(form.get("request_id"));
+    const reason = String(form.get("reason") ?? "");
+    if (reason !== "error" && reason !== "return") throw new Error("Selecciona un motivo válido");
+    const refund = integer(form.get("refund"), "Reembolso");
+    const raw = JSON.parse(String(form.get("items") ?? "[]")) as unknown;
+    if (!Array.isArray(raw) || raw.length < 1 || raw.length > 50) throw new Error("Selecciona las prendas a devolver");
+    const items = raw.map(item => {
+      if (!item || typeof item !== "object") throw new Error("Prenda no válida");
+      const row = item as { item_id?: string; quantity?: number };
+      if (!Number.isInteger(row.quantity) || !row.quantity || row.quantity < 1) throw new Error("Cantidad no válida");
+      return { item_id: uuid(row.item_id ?? null), quantity: row.quantity };
+    });
+    const { error } = await db.rpc("process_sale_return", { p_sale_id: saleId, p_items: items, p_refund: refund, p_reason: reason, p_request_id: requestId });
+    if (error) throw new Error(error.message);
+  } catch (error) { fail(path, error); }
+  revalidatePath("/", "layout");
+  redirect(`/ventas/${saleId}?ok=${encodeURIComponent("Devolución registrada")}`);
 }
 
 export async function addPayment(form: FormData) {

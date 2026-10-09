@@ -1,0 +1,3 @@
+.submit-spinner{flex:none;animation:submit-spin .8s linear infinite}
+@keyframes submit-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.submit-spinner{animation:none}}
