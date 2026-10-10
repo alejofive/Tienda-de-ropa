@@ -32,6 +32,29 @@ export async function loadData() {
   return { products: products.data as Product[], variants: variants.data as Variant[], customers: customers.data as Customer[], sales: sales.data as Sale[], items: items.data as Item[], payments: payments.data as Payment[], returns: returns.data as SaleReturn[], returnItems: returnItems.data as SaleReturnItem[] };
 }
 
+export async function loadHomeData() {
+  const db = await supabaseServer();
+  const [products, customers, sales, payments, returns] = await Promise.all([
+    db.from("products").select("id,name,stock,image_path").order("created_at", { ascending: false }),
+    db.from("customers").select("id,name"),
+    db.from("sales").select("id,customer_id,total,total_cost,created_at,cancelled_at").order("created_at", { ascending: false }),
+    db.from("payments").select("id,sale_id,amount,paid_at,note,created_at").order("created_at", { ascending: false }),
+    db.from("sale_returns").select("id,sale_id,reason,total,total_cost,refund,created_at"),
+  ]);
+  const results = { products, customers, sales, payments, sale_returns: returns };
+  for (const [table, result] of Object.entries(results)) {
+    if (!result.error) continue;
+    console.error("Supabase data load failed", { table, status: result.status, code: result.error.code || null });
+  }
+  const error = Object.values(results).find(result => result.error)?.error;
+  if (error) throw new Error(error.message.includes("fetch failed") ? "No se pudo conectar con Supabase. Inténtalo de nuevo." : `No se pudieron cargar los datos: ${error.message}. Comprueba la migración de Supabase.`);
+  return {
+    products: products.data as Pick<Product, "id" | "name" | "stock" | "image_path">[],
+    customers: customers.data as Pick<Customer, "id" | "name">[],
+    sales: sales.data as Sale[], payments: payments.data as Payment[], returns: returns.data as SaleReturn[],
+  };
+}
+
 export function paid(saleId: string, payments: Payment[], returns: SaleReturn[] = []) {
   return payments.filter(p => p.sale_id === saleId).reduce((sum, p) => sum + p.amount, 0)
     - returns.filter(r => r.sale_id === saleId).reduce((sum, r) => sum + r.refund, 0);

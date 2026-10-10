@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Boxes, CircleDollarSign, HandCoins, Plus, TrendingUp, Wallet } from "lucide-react";
-import { loadData, balance } from "@/lib/data";
+import { loadHomeData, balance } from "@/lib/data";
 import { dateLabel, money, colombiaMonth } from "@/lib/format";
 import { Alert, Empty, Heading, ProductPhoto, SaleStatus } from "@/components/ui";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
-  const { products, customers, sales, payments, returns } = await loadData();
+  const { products, customers, sales, payments, returns } = await loadHomeData();
   const { error, ok } = await searchParams;
   const month = colombiaMonth();
   const monthlySales = sales.filter(s => colombiaMonth(new Date(s.created_at)) === month);
@@ -28,6 +28,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ e
     <div className="quick-actions"><Link href="/productos/nuevo"><span className="quick-icon"><Plus size={22} /></span><span>Agregar producto<small>Una nueva prenda a tu catálogo</small></span><ArrowUpRight size={19} /></Link><Link href="/clientes"><span className="quick-icon coral"><CircleDollarSign size={22} /></span><span>Registrar abono<small>Actualiza lo que te pagaron</small></span><ArrowUpRight size={19} /></Link></div>
     <div className="dashboard-columns"><section className="panel"><div className="panel-header"><div><span className="eyebrow">SEGUIMIENTO</span><h2>Clientes por cobrar</h2></div><Link href="/clientes" className="section-link">Ver todos <ArrowRight size={16} /></Link></div>{debtors.length ? <div className="row-list">{debtors.slice(0, 5).map(c => <Link href={`/clientes/${c.id}`} className="list-row" key={c.id}><span className="avatar">{c.name.charAt(0).toUpperCase()}</span><span className="list-primary"><strong>{c.name}</strong><small>Saldo pendiente</small></span><strong className="debt-value">{money(c.debt)}</strong></Link>)}</div> : <Empty title="Todo al día" description="No tienes clientes con pagos pendientes." />}</section>
       <section className="panel"><div className="panel-header"><div><span className="eyebrow">MOVIMIENTOS</span><h2>Ventas recientes</h2></div><Link href="/ventas" className="section-link">Ver todas <ArrowRight size={16} /></Link></div>{sales.length ? <div className="row-list">{sales.slice(0, 5).map(s => <Link href={`/ventas/${s.id}`} className="list-row" key={s.id}><span className="avatar muted-avatar">✳</span><span className="list-primary"><strong>{s.customer_id ? customers.find(c => c.id === s.customer_id)?.name ?? "Cliente" : "Venta de mostrador"}</strong><small>{dateLabel(s.created_at)}</small></span><span className="row-end"><strong>{money(s.total)}</strong><SaleStatus balance={balance(s, payments, returns)} total={s.total} cancelled={!!s.cancelled_at} /></span></Link>)}</div> : <Empty title="Todavía no hay ventas" description="Tu primera venta aparecerá aquí." href="/ventas/nueva" action="Crear venta" />}</section></div>
-    {low.length > 0 && <section className="panel low-panel"><div className="panel-header"><div><span className="eyebrow">INVENTARIO</span><h2>Revisa tus existencias</h2></div><Link href="/productos" className="section-link">Ver productos <ArrowRight size={16} /></Link></div><div className="low-list">{low.slice(0, 4).map(p => <Link href={`/productos/${p.id}`} key={p.id} className="low-product"><ProductPhoto product={p} /><span>{p.name}<small>{p.stock === 0 ? "Agotado" : `${p.stock} unidades disponibles`}</small></span></Link>)}</div></section>}
+    {low.length > 0 && <section className="panel low-panel"><div className="panel-header"><div><span className="eyebrow">INVENTARIO</span><h2>Productos con pocas unidades</h2></div><Link href="/productos" className="section-link">Ver productos <ArrowRight size={16} /></Link></div><div className="low-list">{low.slice(0, 4).map(p => <Link href={`/productos/${p.id}`} key={p.id} className="low-product"><ProductPhoto product={p} /><span>{p.name}<small>{p.stock === 0 ? "Agotado" : `${p.stock} unidades disponibles`}</small></span></Link>)}</div></section>}
   </>;
 }
