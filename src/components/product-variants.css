@@ -5,6 +5,9 @@
 .variant-row{display:grid;grid-template-columns:25px minmax(0,1.25fr) minmax(0,.9fr) minmax(0,.75fr) 31px;align-items:end;gap:9px;padding:13px 0;border-top:1px solid #edf0e9}
 .variant-row .field{margin:0;min-width:0}
 .variant-row .field input{width:100%}
+.variant-row.stock-empty .variant-stock input{border-color:#c84439;background:#fff1f0;color:#9f2f26}
+.variant-row.stock-empty .variant-stock input:focus{border-color:#a62e25;outline-color:#a62e25}
+.out-of-stock-tag{display:inline-block;margin-left:5px;padding:2px 6px;border-radius:6px;background:#fde5e2;color:#a33229;font-size:11px;font-weight:750}
 .variant-index{align-self:center;color:#9aa599;font-size:12px;font-weight:750}
 .variant-remove{display:grid;place-items:center;width:31px;height:43px;border:0;background:transparent;color:#aa745f}
 .variant-remove:hover:not(:disabled){color:#8c3e2c}

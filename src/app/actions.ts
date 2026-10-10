@@ -55,7 +55,7 @@ export async function saveProduct(form: FormData) {
       if (!row || typeof row !== "object") throw new Error("Variante no válida");
       const variant = row as { id?: string | null; color?: string; size?: string; stock?: number | string };
       const color = text(variant.color ?? "", "Color", 60);
-      const size = text(variant.size ?? "", "Talla", 60);
+      const size = text(String(variant.size ?? "").trim() || "Única", "Talla", 60);
       const stock = integer(String(variant.stock ?? ""), "Unidades");
       const key = `${color.toLocaleLowerCase("es-CO")}\u0000${size.toLocaleLowerCase("es-CO")}`;
       if (combinations.has(key)) throw new Error("No repitas la misma combinación de color y talla");

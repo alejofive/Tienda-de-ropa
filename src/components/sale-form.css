@@ -18,7 +18,8 @@
 .sale-product-group .sale-product{border:0}
 .sale-variant-list{margin-left:60px;display:grid;gap:5px}
 .sale-variant{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;background:#f7f9f5;border-radius:9px}
-.sale-variant.sold-out{opacity:.65}
+.sale-variant.sold-out{background:#fff1f0;color:#9f2f26;box-shadow:inset 0 0 0 1px #e8b4ad}
+.sale-variant.sold-out .sale-variant-info small{color:#9f2f26;font-weight:700}
 .sale-variant-info{min-width:0;display:grid;gap:3px}
 .sale-variant-info strong{font-size:12px}
 .sale-variant-info small{color:#879186}
